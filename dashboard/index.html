@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar — pre-token protocols ranked by implied value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#board">Skip to the board</a>
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <a class="brand" href="#board"><span class="radar-dot" aria-hidden="true"></span>Token&nbsp;Radar</a>
+    <nav class="tabs" aria-label="Views">
+      <a href="#board" data-tab="board">Board</a>
+      <a href="#live" data-tab="live">Live tokens</a>
+      <a href="#model" data-tab="model">Model</a>
+    </nav>
+    <span class="top-note" id="snapshot-note"></span>
+  </div>
+</header>
+<main class="wrap" id="app" aria-busy="true">
+  <section class="hero" id="hero">
+    <p class="kicker">A launch board, not a price feed</p>
+    <h1>Which protocol without a token would be worth the most if it launched one?</h1>
+    <p class="lede">Every protocol below records no token yet. The board ranks them by an
+    implied value computed from the snapshot alone — TVL, seven-day growth, time
+    running with no token, and how many chains it runs on — and gives each one a
+    concrete farm plan with costs and times. Implied value is a model, never a
+    promise, and it says nothing about whether or when a token is issued.</p>
+    <dl class="stats" id="stats"></dl>
+  </section>
+  <section class="filters panel" id="filters" aria-label="Filter the board">
+    <div class="field grow">
+      <label for="q">Search</label>
+      <input type="search" id="q" placeholder="Name, slug, category or chain" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="category">Category</label>
+      <select id="category"></select>
+    </div>
+    <div class="field">
+      <label for="chain">Chain</label>
+      <select id="chain"></select>
+    </div>
+    <div class="field">
+      <label for="min-tvl">Min TVL</label>
+      <select id="min-tvl">
+        <option value="0">Any</option>
+        <option value="10000000">$10M</option>
+        <option value="50000000">$50M</option>
+        <option value="100000000">$100M</option>
+        <option value="500000000">$500M</option>
+        <option value="1000000000">$1B</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="min-implied">Min implied value</label>
+      <select id="min-implied">
+        <option value="0">Any</option>
+        <option value="1000000">$1M</option>
+        <option value="5000000">$5M</option>
+        <option value="25000000">$25M</option>
+        <option value="100000000">$100M</option>
+      </select>
+    </div>
+    <div class="field check">
+      <label><input type="checkbox" id="watchlist-only"> Watchlist only</label>
+      <label><input type="checkbox" id="early-only"> Early rows only</label>
+    </div>
+    <div class="field">
+      <label for="sort">Sort by</label>
+      <select id="sort">
+        <option value="implied">Implied value</option>
+        <option value="tvl">TVL</option>
+        <option value="growth">7-day growth</option>
+        <option value="age">Age</option>
+        <option value="name">Name</option>
+      </select>
+    </div>
+    <p class="count" id="row-count" aria-live="polite"></p>
+  </section>
+  <section id="board" tabindex="-1"></section>
+  <section id="detail" tabindex="-1" hidden></section>
+  <section id="live-view" tabindex="-1" hidden></section>
+  <section class="panel model" id="model">
+    <h2>How implied value is computed</h2>
+    <p>One function scores every row. No protocol name is special-cased and no row
+    is hand-picked. The four factors multiply:</p>
+    <p class="formula" id="formula"></p>
+    <ul class="model-notes">
+      <li><b>Base.</b> A quarter of TVL: the launch is priced off the value already locked in the protocol.</li>
+      <li><b>Growth.</b> Seven-day TVL change, clamped to −60%…+120%, weighted one-half: momentum matters, but a single hot week cannot double a launch.</li>
+      <li><b>Maturity.</b> 0.60 plus up to 0.40 for age, capped at three years: a protocol that has run a long time with no token has had longer to earn one. Unknown age reads as one year.</li>
+      <li><b>Breadth.</b> +2% per chain, capped at five chains: a protocol live on more chains reaches more users and more liquidity for the same TVL.</li>
+    </ul>
+    <h3>Try the model yourself</h3>
+    <p>Move the sliders and the board re-ranks on the same figures. This changes
+    only what you see here; the ranked board above uses the stated defaults.</p>
+    <div class="sandbox">
+      <label>Base multiple
+        <input type="range" id="sb-base" min="0.1" max="0.5" step="0.01" value="0.25">
+        <output id="sb-base-out" for="sb-base">0.25</output>
+      </label>
+      <label>Growth weight
+        <input type="range" id="sb-growth" min="0" max="1" step="0.05" value="0.5">
+        <output id="sb-growth-out" for="sb-growth">0.50</output>
+      </label>
+      <button type="button" id="sb-reset">Reset to radar-2 defaults</button>
+      <p class="sandbox-note" id="sb-note"></p>
+    </div>
+    <h3>How to read this board</h3>
+    <p>The watchlist is the floor, never the ceiling: it holds every protocol with
+    at least $50M of TVL and no token on record. The early radar adds the strongest
+    pre-token protocols below that floor, by TVL. A protocol that records no token
+    may still have one its record does not carry — the snapshot is a record, not
+    proof. Wrapped, staked and bridged products of tokens that already trade are
+    left out on purpose: they are not launches waiting to happen. Live-token
+    protocols are set aside with their market caps, because a market price is a
+    fact and an implied value is a model, and the two should never be mixed.</p>
+    <p class="fine">Snapshot: DefiLlama protocol index, fetched 14 November 2026. Data as of
+    <span id="as-of"></span>. This page makes no network requests; every figure it shows is in its own data file.</p>
+  </section>
+</main>
+<footer class="wrap fine">
+  Token Radar · model radar-2 · an entry for the make.fun token launch radar bounty.
+  Not financial advice: implied values are model outputs, not prices.
+</footer>
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
